@@ -62,6 +62,13 @@ needs to stay there.
 Static Vite build, no server or environment variables. On Vercel the defaults
 are correct: build `npm run build`, output `dist`.
 
+`vercel.json` sets one thing: a cache policy for `/data/`. Those terrain, city
+and road grids are ~10 MB and served from unhashed paths, so without it every
+visit revalidates them. Vite's own hashed assets under `/assets/` are already
+cached immutably. Note that Vercel validates `vercel.json` strictly and rejects
+any property outside its schema, so it cannot carry explanatory keys -- this
+paragraph is where that explanation lives.
+
 ## Origin
 
 Built for the CvAIE design bake-off (Meeting #17, September 2026), then carried
