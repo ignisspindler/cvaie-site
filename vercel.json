@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "comment": "The terrain, city and road grids are ~10 MB and unhashed, so they would otherwise be revalidated on every visit. Vite's own hashed assets under /assets/ are already cached immutably by default.",
+      "source": "/data/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=604800" }
+      ]
+    }
+  ]
+}
