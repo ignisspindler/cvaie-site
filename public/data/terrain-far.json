@@ -1,0 +1,19 @@
+{
+  "file": "terrain-far.f32",
+  "width": 512,
+  "height": 672,
+  "layout": "float32-le, row-major, row 0 = minZ (north), column 0 = minX (west)",
+  "extent": {
+    "minX": -580,
+    "maxX": 280,
+    "minZ": -880,
+    "maxZ": 200
+  },
+  "units": "metres above NAVD88",
+  "elevationMin": 41.5,
+  "elevationMax": 1222.47,
+  "clampedToSourceEdge": 26008,
+  "metresPerWorldUnit": 84.7,
+  "built": "2026-10-06T13:52:59.126Z",
+  "attribution": "Elevation data courtesy of the U.S. Geological Survey, 3D Elevation Program"
+}

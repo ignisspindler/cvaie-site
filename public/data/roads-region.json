@@ -1,0 +1,41 @@
+{
+  "file": "roads-region.f32",
+  "layout": "float32-le, flat [x0,z0,x1,z1,...] world-space segment pairs",
+  "segments": 76403,
+  "bbox": {
+    "west": -79.05,
+    "south": 37.63,
+    "east": -78.22,
+    "north": 38.6
+  },
+  "clippedInsideLogo": 2323,
+  "layers": [
+    {
+      "layer": "Primary Roads",
+      "features": 38,
+      "segments": 5603
+    },
+    {
+      "layer": "Secondary Roads",
+      "features": 593,
+      "segments": 70800
+    }
+  ],
+  "geo": {
+    "south": 37.8653,
+    "north": 38.0104,
+    "west": -78.5857,
+    "east": -78.4023,
+    "ridge": {
+      "lat": 38.0104,
+      "lon": -78.4526,
+      "elevation": 264.2
+    },
+    "metresPerUnit": 84.7
+  },
+  "retrieved": "2026-10-06T14:26:46.559Z",
+  "source": "US Census Bureau, TIGERweb Transportation (Primary and Secondary Roads)",
+  "sourceUrl": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
+  "licence": "Public domain, a work of the U.S. Government (17 U.S.C. 105)",
+  "attribution": "Road network from the U.S. Census Bureau TIGER/Line"
+}

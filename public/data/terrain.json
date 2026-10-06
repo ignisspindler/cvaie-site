@@ -1,0 +1,35 @@
+{
+  "file": "terrain.f32",
+  "width": 896,
+  "height": 1152,
+  "layout": "float32-le, row-major, row 0 = minZ (north), column 0 = minX (west)",
+  "extent": {
+    "minX": -140,
+    "maxX": 140,
+    "minZ": -260,
+    "maxZ": 100
+  },
+  "units": "metres above NAVD88",
+  "elevationMin": 31.27,
+  "elevationMax": 502.65,
+  "metresPerWorldUnit": 84.7,
+  "geo": {
+    "south": 37.8653,
+    "north": 38.0104,
+    "west": -78.5857,
+    "east": -78.4023,
+    "ridge": {
+      "lat": 38.0104,
+      "lon": -78.4526,
+      "elevation": 264.2
+    },
+    "metresPerUnit": 84.7
+  },
+  "sources": [
+    "cville-core",
+    "flight-strip",
+    "flight-corridor"
+  ],
+  "built": "2026-10-06T13:52:59.138Z",
+  "attribution": "Elevation data courtesy of the U.S. Geological Survey, 3D Elevation Program"
+}

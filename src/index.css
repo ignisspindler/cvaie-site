@@ -1,0 +1,532 @@
+:root {
+  --ink: #f2f6fb;
+  --ink-dim: #9fb4cc;
+  --orange: #FA6107;
+  --navy-glass: rgba(6, 26, 48, 0.72);
+  --edge: rgba(148, 189, 236, 0.28);
+  --edge-sky: rgba(250, 97, 7, 0.3);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: #061426;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+body { overflow-x: hidden; }
+
+/* The surface sits behind everything and never scrolls. */
+.canvas {
+  position: fixed !important;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ---------- document flow: exists to give the page height ---------- */
+
+.flow {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;      /* clicks fall through to the canvas... */
+}
+.flow a { pointer-events: auto; }   /* ...except on real links */
+
+.flow__hero {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 16px 8vh;
+  text-align: center;
+}
+
+.flow__hero h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 7vw, 4.6rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.flow__hero p {
+  margin: 0.4rem 0 0;
+  color: var(--ink-dim);
+  font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+}
+
+.flow__cue {
+  margin-top: 3rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50%      { transform: translateY(6px); opacity: 1; }
+}
+
+/* Each spacer buys scroll distance for one stretch of the flight. */
+.flow__spacer { height: 150svh; }
+
+.flow__footer {
+  min-height: 70svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 16px 10vh;
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+}
+
+.flow__sponsor { font-size: 1.1rem; color: var(--ink); }
+.flow__fine { font-size: 0.8rem; opacity: 0.6; }
+
+a { color: var(--orange); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---------- panels that surface out of the flight ---------- */
+
+.panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  visibility: hidden;
+  width: min(420px, calc(100vw - 32px));
+  padding: 1.4rem 1.5rem 1.6rem;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: var(--navy-glass);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 24px 60px rgba(2, 10, 22, 0.55);
+  pointer-events: auto;
+  will-change: transform, opacity;
+  opacity: var(--emerge, 0);
+
+  /* How far the cut has travelled across the panel. Overshoots at both ends so
+     the panel is fully clear of its surface before it stops moving. */
+  --cut: calc(var(--emerge, 0) * 118% - 9%);
+}
+
+/*
+ * Rising out of the tile field: the panel's bottom edge is pinned to the
+ * projected point in the surface, and the cut sweeps DOWN the panel as --emerge
+ * climbs, so the top edge breaks through first and the rest follows it up.
+ */
+.panel--water {
+  transform: translate3d(var(--x, 50vw), var(--y, 50vh), 0) translate(-50%, -100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(var(--cut) - 7%),
+    rgba(0, 0, 0, 0.35) calc(var(--cut) - 1%),
+    transparent var(--cut)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(var(--cut) - 7%),
+    rgba(0, 0, 0, 0.35) calc(var(--cut) - 1%),
+    transparent var(--cut)
+  );
+}
+
+/*
+ * Descending out of the air: the TOP edge is pinned instead, and the same cut
+ * runs the other way, so the bottom edge arrives first as the panel comes down.
+ */
+.panel--sky {
+  transform: translate3d(var(--x, 50vw), var(--y, 50vh), 0) translate(-50%, 0);
+  border-color: var(--edge-sky);
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 0,
+    #000 calc(var(--cut) - 7%),
+    rgba(0, 0, 0, 0.35) calc(var(--cut) - 1%),
+    transparent var(--cut)
+  );
+  mask-image: linear-gradient(
+    to top,
+    #000 0,
+    #000 calc(var(--cut) - 7%),
+    rgba(0, 0, 0, 0.35) calc(var(--cut) - 1%),
+    transparent var(--cut)
+  );
+}
+
+.panel__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+.panel__title {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.25rem, 3.4vw, 1.7rem);
+  font-weight: 620;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.panel__title a { color: var(--ink); }
+
+.panel__body {
+  margin: 0 0 0.5rem;
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.panel__body:last-child { margin-bottom: 0; }
+
+.panel__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--ink-dim);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.panel__meta {
+  margin: 0.7rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow__cue { animation: none; }
+}
+
+/* ---------- the content deck: cards that fly in over the city ---------- */
+
+/*
+ * Radial arrival. Each card carries its own --ox/--oy/--spin (where it comes
+ * from) and the frame loop writes --deck (how far it has got). Everything is
+ * one transform, so the whole deck animates without touching layout.
+ */
+.deck {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Top of the frame, not the bottom: the cards are the destination, and the
+     landscape they arrived over reads beneath them. */
+  top: 4vh;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  /* Stretch, not start: the deck is pinned to the top of the frame, and each
+     card fills the row, so four very different word counts read as a set
+     instead of a ragged staircase. */
+  align-items: stretch;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.deck__card {
+  visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0.95rem 1rem 1rem;
+  border-radius: 14px;
+  /* Denser than the world panels: these sit over a lit landscape, not water. */
+  background: rgba(5, 19, 36, 0.9);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 24px 60px rgba(2, 10, 22, 0.6);
+  pointer-events: auto;
+  will-change: transform, opacity;
+  opacity: var(--deck, 0);
+  transform:
+    translate(
+      calc(var(--ox, 0px) * (1 - var(--deck, 0))),
+      calc(var(--oy, 0px) * (1 - var(--deck, 0)))
+    )
+    rotate(calc(var(--spin, 0deg) * (1 - var(--deck, 0))));
+}
+
+/* Content takes the slack so every card's action sits on its bottom edge. */
+.deck__content { flex: 1; }
+
+.deck__title {
+  margin: 0 0 0.45rem;
+  font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+  font-weight: 620;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.deck .panel__body { font-size: 0.78rem; line-height: 1.42; margin-bottom: 0.4rem; }
+.deck .panel__list { font-size: 0.76rem; line-height: 1.45; padding-left: 1rem; }
+.deck .panel__eyebrow { font-size: 0.62rem; }
+
+.deck__action { margin: 0.7rem 0 0; }
+.deck__action a,
+.deck__action button {
+  font: inherit;
+  font-size: 0.76rem;
+  color: var(--orange);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.deck__action a:hover,
+.deck__action button:hover { text-decoration: underline; }
+
+/* ---------- border treatments, cycled by the shuffle control ---------- */
+
+.deck__card { position: relative; }
+.deck__card::before,
+.deck__card::after { content: ""; position: absolute; pointer-events: none; }
+
+/* Neon: a lit edge with the glow thrown both ways. */
+.deck[data-border="neon"] .deck__card {
+  border: 1px solid rgba(250, 97, 7, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(250, 97, 7, 0.12),
+    0 0 22px rgba(250, 97, 7, 0.22),
+    inset 0 0 22px rgba(250, 97, 7, 0.07),
+    0 24px 60px rgba(2, 10, 22, 0.6);
+}
+
+/* Brackets: corners only, like a targeting reticle. */
+.deck[data-border="brackets"] .deck__card {
+  border: 1px solid rgba(148, 189, 236, 0.16);
+}
+.deck[data-border="brackets"] .deck__card::before,
+.deck[data-border="brackets"] .deck__card::after {
+  width: 26px; height: 26px;
+}
+.deck[data-border="brackets"] .deck__card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--orange);
+  border-left: 2px solid var(--orange);
+  border-radius: 14px 0 0 0;
+}
+.deck[data-border="brackets"] .deck__card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #66a7e8;
+  border-right: 2px solid #66a7e8;
+  border-radius: 0 0 14px 0;
+}
+
+/* Scanline: a bright rule along the top and faint ruling over the card. */
+.deck[data-border="scanline"] .deck__card {
+  border: 1px solid rgba(102, 167, 232, 0.3);
+  overflow: hidden;
+}
+.deck[data-border="scanline"] .deck__card::before {
+  inset: 0 0 auto 0; height: 2px;
+  background: linear-gradient(90deg, var(--orange), #66a7e8 60%, transparent);
+}
+.deck[data-border="scanline"] .deck__card::after {
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg, rgba(148, 189, 236, 0.055) 0 1px, transparent 1px 4px
+  );
+}
+
+/* Circuit: dashed trace with a cut corner. */
+.deck[data-border="circuit"] .deck__card {
+  border: 1px dashed rgba(250, 97, 7, 0.5);
+  border-radius: 14px 14px 14px 2px;
+}
+.deck[data-border="circuit"] .deck__card::before {
+  left: 10px; bottom: -1px; width: 38px; height: 2px;
+  background: var(--orange);
+}
+.deck[data-border="circuit"] .deck__card::after {
+  left: 52px; bottom: -4px; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--orange);
+  box-shadow: 0 0 10px rgba(250, 97, 7, 0.8);
+}
+
+/* Pulse: a slow travelling highlight around the edge. */
+.deck[data-border="pulse"] .deck__card {
+  border: 1px solid rgba(148, 189, 236, 0.2);
+}
+.deck[data-border="pulse"] .deck__card::before {
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--sweep, 0deg),
+    transparent 0deg, var(--orange) 40deg, #66a7e8 90deg, transparent 150deg
+  );
+  /* Paint only the 1px ring, not the fill. */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: sweep 6s linear infinite;
+}
+@property --sweep { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes sweep { to { --sweep: 360deg; } }
+
+/* Plate: no glow at all, just a hard offset block. */
+.deck[data-border="plate"] .deck__card {
+  border: 1px solid rgba(233, 240, 248, 0.35);
+  border-radius: 4px;
+  box-shadow: 5px 5px 0 rgba(250, 97, 7, 0.85), 0 24px 60px rgba(2, 10, 22, 0.6);
+}
+
+/* The shuffle control: the bake-off, left visible on purpose. */
+.deck__shuffle {
+  grid-column: 1 / -1;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+  padding: 0.3rem 0.7rem;
+  font: inherit;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  background: rgba(5, 19, 36, 0.85);
+  border: 1px solid rgba(148, 189, 236, 0.25);
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: var(--deck-ui, 0);
+}
+.deck__shuffle:hover { color: var(--ink); border-color: var(--orange); }
+.deck__shuffle-value { color: var(--orange); }
+
+@media (max-width: 900px) {
+  .deck { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; top: 2vh; }
+  .deck__card { padding: 0.8rem 0.85rem 0.9rem; }
+  .deck .panel__body { font-size: 0.74rem; }
+  .deck .panel__list { font-size: 0.72rem; padding-left: 0.95rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Still fades, but does not fly: the radial sweep is the provoking part. */
+  .deck__card { transform: none; }
+  .deck[data-border="pulse"] .deck__card::before { animation: none; }
+}
+
+/* ---------- overlays ---------- */
+
+.overlay {
+  width: min(900px, calc(100vw - 32px));
+  max-height: 86vh;
+  padding: 0;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: rgba(6, 20, 38, 0.97);
+  color: var(--ink);
+  overflow: hidden;
+}
+.overlay::backdrop { background: rgba(2, 8, 18, 0.72); backdrop-filter: blur(6px); }
+
+.overlay__inner { display: flex; flex-direction: column; max-height: 86vh; }
+
+.overlay__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.3rem;
+  border-bottom: 1px solid var(--edge);
+}
+.overlay__title { margin: 0; font-size: 1.15rem; font-weight: 620; letter-spacing: -0.02em; }
+.overlay__close {
+  font: inherit; font-size: 1.5rem; line-height: 1;
+  color: var(--ink-dim); background: none; border: 0; cursor: pointer; padding: 0 0.2rem;
+}
+.overlay__close:hover { color: var(--ink); }
+
+.overlay__body { padding: 1.1rem 1.3rem 1.5rem; overflow-y: auto; }
+.overlay__lede { margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--ink); }
+.overlay__note { margin: 0 0 1.1rem; font-size: 0.8rem; color: var(--ink-dim); }
+.overlay__sub { margin: 1.6rem 0 0.8rem; font-size: 0.95rem; }
+
+.archive { list-style: none; margin: 0; padding: 0; }
+.archive__item {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--edge);
+}
+.archive__when { font-size: 0.78rem; color: var(--orange); }
+.archive__note { display: block; color: var(--ink-dim); margin-top: 0.2rem; }
+.archive__heading { margin: 0 0 0.15rem; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-dim); }
+.archive__title { margin: 0 0 0.3rem; font-size: 1rem; font-weight: 620; line-height: 1.25; }
+.archive__speakers { margin: 0 0 0.4rem; font-size: 0.82rem; color: #9fc4e8; }
+.archive__summary { margin: 0 0 0.45rem; font-size: 0.85rem; line-height: 1.5; color: var(--ink-dim); }
+.archive__link { font-size: 0.8rem; }
+
+.sponsor { display: grid; grid-template-columns: 200px 1fr; gap: 1.2rem; align-items: start; }
+.sponsor__logo {
+  width: 200px; height: auto; border-radius: 8px;
+  background: #0b1a2c; padding: 0.6rem;
+}
+.sponsor__name { margin: 0.15rem 0 0.5rem; font-size: 1.2rem; }
+
+.partners { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.partner { margin: 0; }
+.partner img {
+  width: 100%; max-width: 128px; height: auto; border-radius: 8px;
+  background: #f4f6f9; padding: 0.45rem;
+}
+.partner--text { display: flex; flex-direction: column; gap: 0.6rem; }
+.partner--text figcaption { margin-top: 0; }
+.partner figcaption { margin-top: 0.45rem; font-size: 0.8rem; color: var(--ink-dim); line-height: 1.45; }
+
+@media (max-width: 760px) {
+  .archive__item { grid-template-columns: 1fr; gap: 0.3rem; }
+  .sponsor { grid-template-columns: 1fr; }
+  .sponsor__logo { width: 160px; }
+}
+
+/* Visually hidden, still read aloud. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The next meetup, promoted into the hero now that the flying panel is gone. */
+.flow__meetup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 1.4rem 0 0;
+  pointer-events: auto;
+}
+.flow__meetup-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+.flow__meetup a {
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  font-weight: 620;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.flow__meetup-where { font-size: 0.85rem; color: var(--ink-dim); }

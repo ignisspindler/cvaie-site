@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Someone else's repository, cloned in as reference. It carries its own .git
+# and its own node_modules; it is not part of this project.
+context/partner-cvaiex/
+
+# Another team's hackathon snapshot, and the event's own process material.
+# Neither is this codebase, and the design artifacts are not ours to publish.
+context/handoff/
+context/concepts/
+context/lookbook/
+context/README.md
+context/TEAM-HARNESS.md
+context/INITIAL_PROMPT.md
+
+# Raw USGS elevation masters: 54 MB, and reproducible with
+# `npm run data:elevation`. The derived grids the site actually loads are
+# committed under public/data/.
+data/elevation/
+
+# Personal Claude Code permissions, local to one machine.
+.claude/settings.local.json
